@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aadu Huli — the goats-and-tigers game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#101c1a;--wood:#2c1e15;--board:#e7c98f;--line:#5b3d24;--goat:#f4ecd8;--goatln:#a68a5b;--tiger:#c1541f;--tigerln:#7a2f10;--gold:#d1a54a;--ink:#101c1a;--paper:#f4efe2;--mute:#6b6155;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#161311;--ink:#efe7d8;--mute:#a99e8c}}
+:root[data-theme=dark]{--paper:#161311;--ink:#efe7d8;--mute:#a99e8c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.55 Karla,system-ui,sans-serif}
+h1,h2{font-family:Fraunces,serif;margin:0;line-height:1.08}
+.top{background:var(--night);color:var(--paper);padding:22px 18px 50px}
+.top .in{max-width:980px;margin:0 auto}
+.top h1{font-size:clamp(28px,5vw,42px);font-weight:800;max-width:16ch}
+.top p{max-width:56ch;color:#f4efe2b3;margin:10px 0 0;font-size:16px}
+.wrap{max-width:980px;margin:-32px auto 60px;padding:0 18px;display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.card{background:var(--paper);border:1px solid #0000001a;border-radius:16px;box-shadow:0 14px 30px #00000022;padding:20px}
+.boardwrap{display:flex;justify-content:center}
+svg{width:100%;max-width:460px;touch-action:manipulation}
+.pt{cursor:pointer}
+.pt circle.node{fill:var(--wood);stroke:#00000030}
+.pt.sel circle.node{stroke:var(--gold);stroke-width:3}
+.pt.hint circle.node{fill:#d1a54a55}
+.piece{pointer-events:none}
+.status{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.turn{font-family:Fraunces;font-weight:600;font-size:19px}
+.badges{display:flex;gap:8px}
+.badge{border-radius:99px;padding:4px 12px;font-size:14px;font-weight:500;background:#0000000f}
+.badge.t{color:var(--tiger)}.badge.g{color:#8a6d2a}
+.msg{background:var(--night);color:var(--paper);border-radius:12px;padding:12px 14px;margin-top:14px;font-size:15px;min-height:20px}
+.side h2{font-size:19px;margin-bottom:6px}
+.side p{color:var(--mute);font-size:14.5px;margin:0 0 14px}
+.mode{display:flex;gap:8px;margin-bottom:14px}
+.mode button{flex:1;border:1.5px solid #00000022;background:transparent;border-radius:10px;padding:8px;font:inherit;cursor:pointer;color:var(--ink)}
+.mode button[aria-pressed=true]{background:var(--night);color:var(--paper);border-color:var(--night)}
+.reset{width:100%;border:0;background:var(--tiger);color:#fff;border-radius:10px;padding:10px;font:600 15px Karla;cursor:pointer;margin-top:6px}
+.legend{display:flex;gap:16px;margin-top:16px;font-size:14px;color:var(--mute)}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.about{margin-top:22px;font-size:14.5px;color:var(--mute);border-top:1px solid #0000001a;padding-top:16px}
+.about b{color:var(--ink)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:760px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+ <h1>Aadu Huli — goats hold the line, tigers hunt the gaps.</h1>
+ <p>A board-and-capture game played across village courtyards in India and Nepal for centuries, known regionally as Aadu Puli Aattam, Bagh-Chal or Meen Mahasangram — long before dice and screens, children and elders played this on stone floors with tamarind seeds and pebbles.</p>
+</div></div>
+<div class="wrap">
+ <div class="card">
+  <div class="status"><div class="turn" id="turnTxt"></div><div class="badges"><span class="badge t" id="capB"></span><span class="badge g" id="leftB"></span></div></div>
+  <div class="boardwrap"><svg id="board" viewBox="0 0 420 420" role="img" aria-label="Aadu Huli board"></svg></div>
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
+ </div>
+ <div class="card side">
+  <h2>Choose your match</h2>
+  <p>Two people on one screen, or play the tigers against a village elder — a simple opponent, not artificial intelligence.</p>
+  <div class="mode" role="group" aria-label="Game mode">
+   <button id="m2" aria-pressed="true">Two players</button>
+   <button id="m1" aria-pressed="false">Vs. elder</button>
+  </div>
+  <button class="reset" id="reset">New game</button>
+  <div class="legend"><span><i class="dot" style="background:var(--tiger)"></i>3 tigers</span><span><i class="dot" style="background:var(--goat)"></i>15 goats</span></div>
+  <div class="about">
+   <p><b>Goats win</b> by placing all 15, then closing every gap so no tiger can move.</p>
+   <p><b>Tigers win</b> by leaping over goats in a straight line to capture 5 of them.</p>
+   <p>First place your goats one at a time. Once all 15 are down, slide a goat to a free neighbouring point each turn instead.</p>
+  </div>
+ </div>
+</div>
+<script>
+// ---- board: 5x5 lattice, diagonals only where (r+c) is even, matching the classic South-Asian goats-and-tigers boards ----
+var N=5,pts=[],edges={};
+for(var r=0;r<N;r++)for(var c=0;c<N;c++)pts.push({r:r,c:c});
+function idx(r,c){return r*N+c}
+function add(a,b){edges[a]=edges[a]||[];edges[b]=edges[b]||[];if(edges[a].indexOf(b)<0)edges[a].push(b);if(edges[b].indexOf(a)<0)edges[b].push(a)}
+for(r=0;r<N;r++)for(c=0;c<N;c++){if(c<N-1)add(idx(r,c),idx(r,c+1));if(r<N-1)add(idx(r,c),idx(r+1,c));if((r+c)%2===0){if(r<N-1&&c<N-1)add(idx(r,c),idx(r+1,c+1));if(r<N-1&&c>0)add(idx(r,c),idx(r+1,c-1))}}
+var jumps=[]; // {a,b,c} straight lines a-b-c
+Object.keys(edges).forEach(function(bk){var b=+bk;edges[b].forEach(function(a){var pa=pts[a],pb=pts[b],dr=pb.r-pa.r,dc=pb.c-pa.c,cr=pb.r+dr,cc=pb.c+dc;if(cr>=0&&cr<N&&cc>=0&&cc<N){var c=idx(cr,cc);if(edges[b].indexOf(c)>=0)jumps.push({a:a,b:b,c:c})}})});
+
+var CORNERS=[idx(0,0),idx(0,4),idx(4,0),idx(4,4)].slice(0,3).concat([idx(2,2)]).slice(0,3); // 3 tiger start points
+var board,turn,goatsLeft,captured,phase,sel,mode,lastMsg;
+function reset(){board={};CORNERS.forEach(function(p){board[p]="T"});turn="G";goatsLeft=15;captured=0;phase="place";sel=null;lastMsg="Goats begin: tap an empty point to place one.";draw()}
+function neighbours(p){return edges[p]||[]}
+function legalMovesFor(p){var mv=[];neighbours(p).forEach(function(n){if(!board[n])mv.push({to:n})});if(board[p]==="T")jumps.filter(function(j){return j.a===p}).forEach(function(j){if(board[j.b]==="G"&&!board[j.c])mv.push({to:j.c,capture:j.b})});return mv}
+function tigersCanMove(){for(var p in board)if(board[p]==="T"&&legalMovesFor(+p).length)return true;return false}
+function allTigerMoves(){var out=[];Object.keys(board).forEach(function(pk){var p=+pk;if(board[p]==="T")legalMovesFor(p).forEach(function(m){out.push({from:p,to:m.to,capture:m.capture})})});return out}
+function winner(){if(captured>=5)return"T";if(goatsLeft===0&&!tigersCanMove())return"G";return null}
+function afterMove(){var w=winner();if(w){lastMsg=w==="T"?"The tigers have broken through — Tigers win!":"Every gap is closed — Goats win!";phase="over";draw();return}
+ turn=turn==="G"?"T":"G";
+ if(turn==="T"&&mode==="1"){setTimeout(elderMove,420)}
+ draw()}
+function elderMove(){var mv=allTigerMoves();if(!mv.length){afterMoveNoChange();return}var cap=mv.filter(function(m){return m.capture!=null});var pick=(cap.length?cap:mv)[Math.floor(Math.random()*(cap.length?cap.length:mv.length))];board[pick.to]="T";delete board[pick.from];if(pick.capture!=null){delete board[pick.capture];captured++}lastMsg="The elder's tiger moves.";afterMove()}
+function afterMoveNoChange(){lastMsg="The elder's tiger has no move — turn passes.";turn="G";draw()}
+function click(p){if(phase==="over")return;
+ if(turn==="G"){
+  if(phase==="place"){if(board[p])return;board[p]="G";goatsLeft--;lastMsg=goatsLeft?"Goat placed. "+goatsLeft+" left to place.":"All 15 goats placed — now slide instead of placing.";if(goatsLeft===0)phase="move";afterMove();return}
+  if(sel==null){if(board[p]==="G")sel=p;draw();return}
+  if(p===sel){sel=null;draw();return}
+  if(board[p]){if(board[p]==="G")sel=p;draw();return}
+  if(neighbours(sel).indexOf(p)>=0){board[p]="G";delete board[sel];sel=null;lastMsg="Goat moves.";afterMove()}else draw();
+  return}
+ if(mode==="1")return; // elder moves itself
+ if(sel==null){if(board[p]==="T")sel=p;draw();return}
+ if(p===sel){sel=null;draw();return}
+ if(board[p]==="T"){sel=p;draw();return}
+ var mv=legalMovesFor(sel).filter(function(m){return m.to===p})[0];
+ if(mv){board[p]="T";delete board[sel];if(mv.capture!=null){delete board[mv.capture];captured++;lastMsg="Capture! "+captured+" of 5."}else lastMsg="Tiger moves.";sel=null;afterMove()}else draw()}
+function draw(){
+ var svg=document.getElementById("board"),S=90,PAD=35,html="";
+ function xy(p){var pt=pts[p];return[PAD+pt.c*S,PAD+pt.r*S]}
+ Object.keys(edges).forEach(function(ak){var a=+ak;edges[a].forEach(function(b){if(b>a){var p1=xy(a),p2=xy(b);html+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="var(--line)" stroke-width="3"/>'}})});
+ var moves=[];if(sel!=null)moves=legalMovesFor(sel).map(function(m){return m.to});
+ pts.forEach(function(pt,p){var xy0=xy(p),cls="pt"+(sel===p?" sel":"")+(moves.indexOf(p)>=0?" hint":"");
+ html+='<g class="'+cls+'" data-p="'+p+'" tabindex="0" role="button" aria-label="point '+p+(board[p]?", "+(board[p]==="T"?"tiger":"goat"):", empty")+'"><circle class="node" cx="'+xy0[0]+'" cy="'+xy0[1]+'" r="13"/>';
+ if(board[p]==="T")html+='<circle class="piece" cx="'+xy0[0]+'" cy="'+xy0[1]+'" r="15" fill="var(--tiger)" stroke="var(--tigerln)" stroke-width="2"/><text class="piece" x="'+xy0[0]+'" y="'+(xy0[1]+5)+'" text-anchor="middle" font-size="15" fill="#fff">🐯</text>';
+ if(board[p]==="G")html+='<circle class="piece" cx="'+xy0[0]+'" cy="'+xy0[1]+'" r="15" fill="var(--goat)" stroke="var(--goatln)" stroke-width="2"/><text class="piece" x="'+xy0[0]+'" y="'+(xy0[1]+5)+'" text-anchor="middle" font-size="14">🐐</text>';
+ html+="</g>"});
+ svg.innerHTML=html;
+ svg.querySelectorAll(".pt").forEach(function(g){g.addEventListener("click",function(){click(+g.dataset.p)});g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();click(+g.dataset.p)}})});
+ document.getElementById("turnTxt").textContent=phase==="over"?"Game over":(turn==="G"?"Goats to move":(mode==="1"?"Elder's tiger is thinking…":"Tigers to move"));
+ document.getElementById("capB").textContent="Captured "+captured+"/5";
+ document.getElementById("leftB").textContent=phase==="place"?"To place "+goatsLeft:"Goats on board "+Object.values(board).filter(function(v){return v==="G"}).length;
+ document.getElementById("msg").textContent=lastMsg}
+document.getElementById("reset").onclick=reset;
+document.getElementById("m2").onclick=function(){mode="2";this.setAttribute("aria-pressed","true");document.getElementById("m1").setAttribute("aria-pressed","false");reset()};
+document.getElementById("m1").onclick=function(){mode="1";this.setAttribute("aria-pressed","true");document.getElementById("m2").setAttribute("aria-pressed","false");reset()};
+mode="2";reset();
+</script>
+</body>
+</html>
