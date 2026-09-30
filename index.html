@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Khel Naksha — Traditional Indian Indoor Games</title>
+<style>
+:root{--brown:#4d2d1d;--paper:#f4ead7;--ink:#2e2118;--gold:#b98236;--cream:#fffaf0}
+*{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,serif}
+header{background:var(--brown);color:#fff7e8;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+header h1{margin:0;font-size:28px} header small{opacity:.8}
+button{font:inherit}.btn{border:0;border-radius:10px;background:var(--brown);color:white;padding:11px 15px;cursor:pointer}.btn.alt{background:#a96f2e}.btn.light{background:#eee0c7;color:var(--brown)}
+main{max-width:1200px;margin:auto;padding:20px}.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center}
+.card{background:#fffaf0;border:1px solid #d4b98d;border-radius:16px;padding:18px;box-shadow:0 5px 20px #5b3a1b18}
+.mapwrap{position:relative;background:#e7d2ad;border-radius:16px;overflow:hidden;padding:10px}.mapwrap img{width:100%;display:block;border-radius:10px}
+.mapbtn{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;border:2px solid white;background:#6e3d1d;color:white;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px #0006}
+.states{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.statebtn{padding:10px;border:1px solid #cba979;background:#fff7e8;border-radius:8px;cursor:pointer;text-align:left}
+h2{margin-top:0}.muted{color:#6e6257}.gamegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.game{cursor:pointer;transition:.15s}.game:hover{transform:translateY(-2px)} .tag{display:inline-block;background:#ead3ac;padding:4px 8px;border-radius:999px;font-size:12px}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:18px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tabs button{border:1px solid #cba979;background:#fff7e8;border-radius:9px;padding:9px 12px;cursor:pointer}.tabs .active{background:var(--brown);color:white}
+.boardbox{background:#ead7b7;border-radius:16px;padding:14px;text-align:center}.boardbox img{max-width:100%;max-height:620px;object-fit:contain;background:white;border-radius:8px}
+.playpanel{background:#fff;border:1px solid #d4b98d;border-radius:12px;padding:15px}
+.log{min-height:42px;padding:10px;background:#f4ead7;border-radius:8px;margin:10px 0}
+.tokens{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.token{width:46px;height:46px;border-radius:50%;border:2px solid #5a351e;display:grid;place-items:center;cursor:pointer;background:#f7e4bb}.token.on{outline:4px solid #d69a3b}
+.grid{display:grid;grid-template-columns:repeat(7,42px);justify-content:center;gap:2px;margin:12px}.cell{height:42px;border:1px solid #6e4a2b;background:#fff8e9;display:grid;place-items:center;font-size:12px}.safe{background:#ead2a1}.piece{width:24px;height:24px;border-radius:50%;background:#7b301e;color:white;display:grid;place-items:center;font-size:11px}
+.vaik{display:grid;grid-template-columns:repeat(11,1fr);gap:2px;max-width:520px;margin:auto}.vcell{aspect-ratio:1;border:1px solid #8d5c2d;background:#fff8e9;display:grid;place-items:center;font-size:11px;position:relative}.lad{background:#dfe7b5}.snake{background:#efc3a9}
+.footer{padding:30px 0;color:#6e6257;text-align:center}.notice{padding:10px 12px;border-left:4px solid var(--gold);background:#f7ecd8}
+@media(max-width:800px){.hero,.detail{grid-template-columns:1fr}.gamegrid{grid-template-columns:1fr 1fr}.states{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.gamegrid{grid-template-columns:1fr}.states{grid-template-columns:1fr}.grid{grid-template-columns:repeat(7,34px)}.cell{height:34px}}
+</style>
+</head>
+<body>
+<header><div><h1>Khel Naksha</h1><small>India's traditional indoor & board games</small></div><button class="btn light" onclick="home()">Home</button></header>
+<main id="app"></main>
+<script>
+const gamesByState = {
+"Andhra Pradesh":["Ashta Chamma","Vaikuntapali","Puli Joodham","Chowka Bara","Ganjifa"],
+"Arunachal Pradesh":["Gambler's Game","Traditional Seed Games"],
+"Assam":["Guti","Ganjifa","Kaudi Khela"],
+"Bihar":["Chaupar","Pachisi","Ganjifa"],
+"Chhattisgarh":["Goti","Chaupar","Traditional Seed Games"],
+"Goa":["Ganjifa","Chowka Bara","Pachisi"],
+"Gujarat":["Chopat","Ganjifa","Pachisi","Navakankari"],
+"Haryana":["Chaupar","Pachisi","Goti"],
+"Himachal Pradesh":["Chaupar","Ganjifa","Goti"],
+"Jharkhand":["Goti","Pachisi","Traditional Seed Games"],
+"Karnataka":["Chowka Bara","Ali Guli Mane","Adu Huli","Ganjifa","Pachisi"],
+"Kerala":["Pallankuzhi","Thayam","Pachisi","Ganjifa"],
+"Madhya Pradesh":["Chaupar","Pachisi","Ganjifa"],
+"Maharashtra":["Chaupar","Saaripat","Ganjifa","Pachisi"],
+"Manipur":["Kang","Guti","Traditional Strategy Games"],
+"Meghalaya":["Guti","Seed Games","Traditional Strategy Games"],
+"Mizoram":["Traditional Seed Games","Guti"],
+"Nagaland":["Guti","Seed Games","Traditional Strategy Games"],
+"Odisha":["Ganjifa","Chaupar","Kaudi Khela","Pachisi"],
+"Punjab":["Chaupar","Pachisi","Goti"],
+"Rajasthan":["Chopat","Chaupar","Pachisi","Ganjifa"],
+"Sikkim":["Guti","Traditional Strategy Games"],
+"Tamil Nadu":["Aadu Puli Aattam","Pallanguzhi","Thaayam","Dayakattai","Chaturanga"],
+"Telangana":["Ashta Chamma","Vaikuntapali","Puli Joodham","Ganjifa","Chowka Bara"],
+"Tripura":["Guti","Traditional Seed Games"],
+"Uttar Pradesh":["Chaupar","Pachisi","Ganjifa"],
+"Uttarakhand":["Chaupar","Pachisi","Guti"],
+"West Bengal":["Guti","Ganjifa","Pachisi","Chaupar"]
+};
+const states=Object.keys(gamesByState);
+const desc={
+"Ashta Chamma":"A Southern Indian race game played with cowrie shells. This page uses the supplied Ashta Chamma board as the play-board reference.",
+"Vaikuntapali":"A traditional Indian moral/spiritual race game, represented here with the supplied Telugu Vaikuntapali board as the play-board reference.",
+"Chowka Bara":"A Karnataka board-game family related to the Southern Indian race-game tradition.",
+"Ali Guli Mane":"A Karnataka sowing game played with pits and counters.",
+"Adu Huli":"The Karnataka tiger-and-goat strategy game.",
+"Aadu Puli Aattam":"A Tamil strategy game in which goats try to surround and restrict tigers.",
+"Pallanguzhi":"A South Indian sowing game played with a row of pits and counters.",
+"Thaayam":"A Tamil race-game tradition using dice/shell throws and pieces.",
+"Dayakattai":"A traditional Tamil dice/race-game family.",
+"Puli Joodham":"A South Indian tiger-and-goat hunting/strategy game family.",
+"Ganjifa":"A traditional Indian playing-card game family with strong regional variants.",
+"Chaupar":"A North and western Indian cross-shaped race-game family.",
+"Pachisi":"A historic Indian race-game family played with counters and throws.",
+"Chopat":"A western Indian race-game tradition related to the Pachisi family.",
+"Saaripat":"A Maharashtra race-game tradition.",
+"Chaturanga":"An early Indian strategy-game tradition associated with the history of chess."
+};
+function esc(s){return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function home(){
+let markers=["Andhra Pradesh","Telangana","Karnataka","Tamil Nadu","Kerala","Maharashtra","Rajasthan","Gujarat","Odisha","West Bengal","Assam","Punjab","Uttar Pradesh","Madhya Pradesh"];
+let pos=[[65,61],[66,58],[56,60],[52,70],[50,78],[39,54],[42,35],[31,49],[67,45],[79,31],[78,20],[28,28],[43,25],[50,43]];
+document.getElementById("app").innerHTML=`<section class="hero">
+<div><div class="card"><h2>Explore India's traditional games</h2><p>Select a state to discover regional indoor, board and strategy games. Each game has its own story, rules and a Play area.</p><div class="notice"><b>Historical note:</b> the present-day Telangana region was part of the State of Andhra Pradesh before 2 June 2014. Khel Naksha keeps historical and present-day labels separate.</div></div>
+<div class="states">${states.map(s=>`<button class="statebtn" onclick="statePage('${s}')">${s}</button>`).join("")}</div></div>
+<div class="mapwrap"><img src="assets/india-map.png" alt="India map"><div>${markers.map((s,i)=>`<button class="mapbtn" title="${s}" style="left:${pos[i][0]}%;top:${pos[i][1]}%" onclick="statePage('${s}')">•</button>`).join("")}</div></div>
+</section><div class="footer">Khel Naksha • prototype archive • local traditions can vary by community</div>`;
+}
+function statePage(s){
+let gs=gamesByState[s]||[];
+document.getElementById("app").innerHTML=`<button class="btn light" onclick="home()">← India</button><div class="card" style="margin-top:12px"><h2>${s}</h2><p class="muted">Traditional games documented for this region. Select a game to read its story and play a digital adaptation.</p><div class="gamegrid">${gs.map(g=>`<div class="card game" onclick="gamePage('${s}','${g.replaceAll("'","\\'")}')"><span class="tag">Indoor / board</span><h3>${g}</h3><p>${desc[g]||"A regional traditional game or game family. Community-specific rules and names may vary."}</p><button class="btn">Open game →</button></div>`).join("")}</div></div>`;
+}
+function gamePage(s,g){
+let special=g==="Ashta Chamma"||g==="Vaikuntapali"||g==="Adu Huli";
+document.getElementById("app").innerHTML=`<button class="btn light" onclick="statePage('${s}')">← ${s}</button>
+<div class="detail" style="margin-top:12px"><div class="card"><span class="tag">${s}</span><h2>${g}</h2><p>${desc[g]||"This entry is presented as a regional game record. Add community-specific sources, names and rules through the contribution workflow."}</p>
+<div class="tabs"><button onclick="tab(this,'story')">Story & Culture</button><button onclick="tab(this,'how')">How to Play</button><button class="active" onclick="tab(this,'play')">🎮 Play</button></div>
+<div id="story" class="tab"><h3>Story & Culture</h3><p>Document the local name, community, occasions, memories, history and sources here. Khel Naksha should preserve variants rather than flattening them into one rule set.</p></div>
+<div id="how" class="tab" style="display:none"><h3>How to Play</h3><p>Rules should follow the regional version being documented. The Play area below is a digital adaptation for learning and demonstration.</p></div>
+<div id="play" class="tab"><div id="playbox"></div></div></div>
+<div class="card boardbox">${g==="Ashta Chamma"?'<img src="assets/ashta-chamma.png" alt="Supplied Ashta Chamma board">':g==="Vaikuntapali"?'<img src="assets/vaikuntapali.png" alt="Supplied Vaikuntapali board">':'<h3>Playable digital version</h3><p>Use the controls in the Play panel.</p>'}</div></div>`;
+renderGame(g);
+}
+function tab(btn,id){document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.style.display="none");document.getElementById(id).style.display="block";}
+function renderGame(g){
+const p=document.getElementById("playbox");
+if(g==="Ashta Chamma") return ashta(p);
+if(g==="Vaikuntapali") return vaikunta(p);
+if(g==="Adu Huli") return aduhuli(p);
+if(g==="Pallanguzhi"||g==="Pallankuzhi"||g==="Ali Guli Mane") return pits(p,g);
+if(g==="Aadu Puli Aattam"||g==="Puli Joodham") return hunt(p,g);
+return generic(p,g);
+}
+function ashta(p){
+let turn=1, rolls=0, pieces=[0,0,0,0], log="Roll the cowries. 4 = Chamma, 8 = Ashta.";
+p.innerHTML=`<div class="playpanel"><b>Player ${turn}</b><div class="log" id="alog">${log}</div><button class="btn" onclick="rollA()">🐚 Roll 4 cowries</button> <button class="btn light" onclick="resetA()">Reset</button><div id="atokens" class="tokens"></div><p class="muted">Prototype movement follows the supplied board reference; choose a piece after a roll.</p></div>`;
+window.rollA=()=>{let up=0;for(let i=0;i<4;i++)if(Math.random()<.5)up++;let n=up===0?8:up;window._aroll=n;document.getElementById("alog").textContent=`Player ${turn}: ${up} shell openings → ${n===8?"ASHTA (8)":n===4?"CHAMMA (4)":n}. Choose a piece.`;document.getElementById("atokens").innerHTML=pieces.map((x,i)=>`<button class="token ${x>0?'on':''}" onclick="moveA(${i})">P${i+1}<br>${x}</button>`).join("")};
+window.moveA=(i)=>{if(!window._aroll)return;pieces[i]=Math.min(56,pieces[i]+window._aroll);let win=pieces.every(x=>x>=56);document.getElementById("alog").textContent=win?`Player ${turn} wins! All four pieces reached home.`:`Piece ${i+1} moved ${window._aroll} spaces. ${window._aroll===4||window._aroll===8?"Bonus roll!":"Next turn."}`;if(win){window._aroll=0;return} if(window._aroll!==4&&window._aroll!==8)turn=turn===1?2:1;window._aroll=0;document.getElementById("atokens").innerHTML=pieces.map((x,j)=>`<button class="token" onclick="moveA(${j})">P${j+1}<br>${x}</button>`).join("")};
+window.resetA=()=>{pieces=[0,0,0,0];turn=1;window._aroll=0;document.getElementById("alog").textContent="Roll the cowries.";document.getElementById("atokens").innerHTML=""};
+}
+function vaikunta(p){
+let pos=1,turn=1;const snakes={16:6,27:5,48:26,55:7,62:18,64:60,87:24,93:73,95:75,98:79};const ladders={3:22,8:30,15:44,21:42,28:84,36:57,51:67,71:91,78:98};
+p.innerHTML=`<div class="playpanel"><b>Vaikuntapali / Paramapada Sopanam</b><div class="log" id="vlog">Roll to move from square 1 toward the final square.</div><button class="btn" onclick="rollV()">🎲 Roll</button> <button class="btn light" onclick="resetV()">Reset</button><div class="vaik" id="vgrid"></div></div>`;
+function draw(){let a=[];for(let n=1;n<=100;n++){let cls=ladders[n]?"lad":snakes[n]?"snake":"";a.push(`<div class="vcell ${cls}"><span>${n}</span></div>`)}document.getElementById("vgrid").innerHTML=a.join("")}
+window.rollV=()=>{let r=1+Math.floor(Math.random()*6);pos=Math.min(100,pos+r);let msg=`Rolled ${r}; moved to ${pos}.`;if(ladders[pos]){msg+=` Ladder to ${ladders[pos]}.`;pos=ladders[pos]}if(snakes[pos]){msg+=` Snake to ${snakes[pos]}.`;pos=snakes[pos]}if(pos===100)msg+=" You reached the destination!";document.getElementById("vlog").textContent=msg;draw()};
+window.resetV=()=>{pos=1;document.getElementById("vlog").textContent="Reset to square 1."};draw();
+}
+function pits(p,g){
+let pits=14,stones=4,turn=1;
+p.innerHTML=`<div class="playpanel"><b>${g}</b><div class="log" id="plog">Choose a pit to sow ${stones} counters.</div><div id="pits" class="tokens"></div><button class="btn light" onclick="resetP()">Reset</button></div>`;
+function draw(){document.getElementById("pits").innerHTML=Array.from({length:pits},(_,i)=>`<button class="token" onclick="sow(${i})">${i+1}<br>${stones}</button>`).join("")}
+window.sow=(i)=>{document.getElementById("plog").textContent=`Player ${turn} selected pit ${i+1}. Counters are sown around the pits. (Learning prototype.)`;turn=turn===1?2:1;draw()};
+window.resetP=()=>{turn=1;document.getElementById("plog").textContent="Choose a pit.";draw()};draw();
+}
+function hunt(p,g){
+let turn=1;let goats=15,tigers=3;
+p.innerHTML=`<div class="playpanel"><b>${g}</b><div class="log" id="hlog">Player ${turn}: select an action.</div><button class="btn" onclick="actH('goat')">🐐 Place/move goat</button> <button class="btn alt" onclick="actH('tiger')">🐅 Move tiger / capture</button> <button class="btn light" onclick="resetH()">Reset</button><p>Goats remaining: <b id="goats">${goats}</b> · Tigers: <b>${tigers}</b></p></div>`;
+window.actH=(who)=>{if(who==="tiger"&&goats>0){goats--;document.getElementById("goats").textContent=goats;document.getElementById("hlog").textContent="A tiger captured a goat in this learning move."}else document.getElementById("hlog").textContent="A legal move would be selected on the game graph in the full regional implementation.";turn=turn===1?2:1};
+window.resetH=()=>{goats=15;document.getElementById("goats").textContent=goats;document.getElementById("hlog").textContent="Reset."};
+}
+function generic(p,g){p.innerHTML=`<div class="playpanel"><h3>${g}</h3><p>This game is represented as a playable learning panel. Use it to demonstrate turns and interaction while the community-specific board/rules are documented.</p><button class="btn" onclick="genericTurn(this)">▶ Start / Next Turn</button><div class="log" id="glog">Ready.</div></div>`}
+function genericTurn(b){document.getElementById("glog").textContent="Turn advanced. Add the documented regional board and rules for this game variant.";b.textContent="Next Turn"}
+home();
+</script>
+</body>
+</html>
